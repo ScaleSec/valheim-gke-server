@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valheim-server
+spec:
+  selector:
+    matchLabels:
+      app: valheim-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: valheim-server
+    spec:
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - image: {{ .Values.image }}
+        name: valheim-server
+        env:
+        - name: SERVER_NAME
+          value: {{ .Values.serverName }}
+        - name: WORLD_NAME
+          value: {{ .Values.worldName }}
+        - name: SERVER_PASS
+          value: {{ .Values.password }}
+        {{ if .Values.extraEnvironmentVars -}}
+        {{ range $key, $value := .Values.extraEnvironmentVars }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{ end -}}
+        {{ end -}}
+        ports:
+        - containerPort: 2456
+          name: game1
+        - containerPort: 2457
+          name: game2
+        - containerPort: 2458
+          name: game3
+        resources:
+          requests:
+            # cpu: {{ .Values.resources.requests.cpu }}
+            ephemeral-storage: 3Gi
+            # memory: {{ .Values.resources.requests.memory }}
+        securityContext:
+          capabilities:
+            add:
+              - sys_nice
+        volumeMounts:
+        {{ if .Values.storage.kind }}
+        - mountPath: /config
+          name: gamefiles
+        # - mountPath: /opt/valheim
+        #   name: serverfile
+        {{ end }}
+        {{ range .Values.extraVolumes }}
+        - name: {{ .name }}
+          readOnly: true
+          mountPath: /extraVolumes/{{ .name }}
+        {{ end }}
+        resources: {{- toYaml .Values.resources | nindent 10 }}
+      volumes:
+      {{ if eq .Values.storage.kind "hostvol" }}
+      - name: gamefiles
+        hostPath:
+          path: {{ .Values.storage.hostvol.path }}
+          type: Directory
+      {{ end }}
+      {{ if eq .Values.storage.kind "persistentVolumeClaim" }}
+      - name: gamefiles
+        persistentVolumeClaim:
+          claimName: valheim-server-world-data
+      # - name: serverfile
+      #   persistentVolumeClaim:
+      #     claimName: valheim-server-file
+      {{ end }}
+      {{ range .Values.extraVolumes }}
+      - name: {{ .name }}
+        {{ .type }}:
+          {{ if (eq .type "configMap") }}
+          name: {{ .name }}
+          {{ else if (eq .type "secret") }}
+          secretName: {{ .name }}
+          {{ if .defaultMode }}
+          defaultMode: {{ .defaultMode }}
+          {{ end }}
+          {{ end }}
+      {{ end }}

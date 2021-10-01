@@ -1,0 +1,33 @@
+# General
+region    = "us-east1"
+dr_region = "us-east1"
+project   = "projectid"
+
+zones         = ["us-east1-b"]
+apis_required = ["artifactregistry.googleapis.com", "cloudscheduler.googleapis.com", "cloudbuild.googleapis.com", "cloudfunctions.googleapis.com", "container.googleapis.com", "compute.googleapis.com", "pubsub.googleapis.com"]
+
+# GKE
+machine_type = "e2-standard-2"
+cluster_name = "valheim"
+master_authorized_networks = [
+  {
+    cidr_block   = "cidr"
+    display_name = "name"
+  }
+]
+
+create_artifact_registry = false
+
+# Cloud Functions
+# This should be enough to store the backup file in memory. Usually under 20mb
+backup_cf_memory = 128
+bucket_name      = "bucketname"
+scaleup_users    = ["user:user@email"]
+
+cloudscheduler_location = "us-central1"
+
+# how often to check for scaledown
+scaledown_function_schedule = "*/15 * * * *"
+# This is in the helm chart
+container_name   = "valheim-server"
+metrics_baseline = "0.22"

@@ -1,0 +1,6 @@
+.vscode
+.DS_*
+terraform/terraform.*tfvars
+terraform/.terraform
+terraform/terraform.tfstate*
+terraform/.terraform.tfstate.lock*

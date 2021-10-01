@@ -1,0 +1,49 @@
+worldName: scaleheim
+serverName: scaleheim
+
+password: overwrittenbycli 
+
+image: "lloesche/valheim-server:latest"
+# from terraform
+serviceAccountName: scaleheim-sa
+
+
+resources: {}
+
+
+storage:
+  kind: persistentVolumeClaim
+  hostvol:
+    path: /data/valheim
+  pvc:
+    storageClassName: premium-rwo
+    size: 20Gi
+
+networking:
+  serviceType: LoadBalancer
+
+nodeSelector: {}
+
+# these should be set to the same as the node size
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 20m
+
+extraEnvironmentVars:
+  BACKUPS: true
+  BACKUPS_CRON: "*/30 * * * *"
+  BACKUPS_MAX_AGE: 3
+  POST_BOOTSTRAP_HOOK: "apt-get update && apt-get install -y python3-pip apt-transport-https ca-certificates gnupg && echo \"deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main\" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-sdk -y"
+  POST_BACKUP_HOOK: "overwrittenbycli"
+  # increase data rate from default of 60
+  VALHEIM_PLUS: true
+  VPCFG_Server_enabled: true
+  VPCFG_Server_enforceMod: false
+  VPCFG_Server_dataRate: 500
+  SERVER_PUBLIC: false
+
+# extraVolumes:
+# - type: secret
+#   name: backup-ssh-key
+#   defaultMode: 0600
