@@ -1,6 +1,10 @@
 # Valheim GKE Server
 
 This repo contains all things necessary to automate setting up a Valheim server in GKE.
+
+## Architecture
+![image](https://user-images.githubusercontent.com/31193909/137343959-1e86e73e-205c-4a79-99d5-2788545795a6.png)
+
 ## Requirements
 
 * Helm > v3.0
