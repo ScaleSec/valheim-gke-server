@@ -230,3 +230,52 @@ resource "google_cloudfunctions_function" "scaleup" {
   trigger_http = true
 
 }
+
+########################
+# Bot Function
+########################
+
+# Source code
+data "archive_file" "bot" {
+  type        = "zip"
+  source_dir  = "${abspath("../")}/cloudfunctions/bot"
+  output_path = "/tmp/bot.zip"
+}
+
+# Archive file
+resource "google_storage_bucket_object" "bot" {
+  name   = "bot-${data.archive_file.scaleup.output_md5}.zip"
+  bucket = google_storage_bucket.bucket.name
+  source = data.archive_file.bot.output_path
+
+  metadata = {}
+
+}
+resource "google_cloudfunctions_function" "bot" {
+  depends_on = [
+    google_project_service.apis
+  ]
+
+  name        = "interactions"
+  description = "interactions"
+  runtime     = "go116"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.bot.name
+  entry_point           = "Interactions"
+
+  labels = {
+    function = "Interactions"
+  }
+
+  service_account_email = google_service_account.bot.email
+
+  environment_variables = {
+    DISCORD_PUBLIC_KEY = var.public_key
+
+  }
+
+  trigger_http = true
+
+}
