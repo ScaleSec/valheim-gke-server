@@ -63,6 +63,10 @@ resource "google_service_account" "scaledown" {
   account_id   = "valheim-scaledown"
   display_name = "SA to scaledown"
 }
+resource "google_service_account" "bot" {
+  account_id   = "valheim-bot"
+  display_name = "SA for bot"
+}
 resource "google_project_iam_member" "scaleup" {
   role   = "roles/container.admin"
   member = "serviceAccount:${google_service_account.scaleup.email}"

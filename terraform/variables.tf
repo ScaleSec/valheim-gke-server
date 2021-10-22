@@ -121,3 +121,8 @@ variable "scaledown_function_schedule" {
 
   default = "0 * * * *"
 }
+
+variable "public_key" {
+  description = "Discord bot public key"
+  type = string
+}
