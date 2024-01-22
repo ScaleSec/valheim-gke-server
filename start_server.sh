@@ -11,11 +11,13 @@ project_id=scaleheim
 if curl "https://$region-$project_id.cloudfunctions.net/$function_name" -H "Authorization: Bearer $(gcloud auth print-identity-token)" -d "{}"; then
   echo "Server has started. Waiting until it is ready"
 else
-  echo "Error starting server. Printing logs"
+  echo "Error starting server. Printing scaleup function logs"
   gcloud functions logs read $function_name --region=$region
 fi
 
 # You can uncomment this line if you give users access to list pod information. Exercise for reader.
-#kubectl wait --for=condition=ready --timeout=500s pod -l $pod_label
-
-echo "Server is ready"
+if ! kubectl wait --for=condition=ready --timeout=500s pod -l $pod_label > /dev/null 2>&1 ; then
+  echo "No Kubernetes access detected. Server will be ready in about 6 minutes"
+else
+  echo "Server is ready"
+fi
